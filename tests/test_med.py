@@ -3,12 +3,17 @@ Dummy input으로 각 모듈을 단계별로 검증.
 전체 학습 코드 붙이기 전에 shape와 출력이 맞는지 확인.
 """
 
+import os
+import sys
 import torch
 
-from config import MedConfig
-from attention import BertAttention
-from bert_layer import BertLayer
-from bert_model import BertModel
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, ROOT)
+
+from config import ModelConfig, TextConfig
+from bert.attention import BertAttention
+from bert.bert_layer import BertLayer
+from bert.bert_model import BertModel
 
 
 # ── 공통 더미 설정 ────────────────────────────────────────────
@@ -18,10 +23,14 @@ I        = 197    # image patch 수 (ViT: 196 patches + 1 CLS)
 hidden   = 768
 
 # 경량화 config (테스트용)
-config_enc = MedConfig(num_hidden_layers=2, intermediate_size=1024,
-                       add_cross_attention=False)
-config_mm  = MedConfig(num_hidden_layers=2, intermediate_size=1024,
-                       add_cross_attention=True)
+config_enc = ModelConfig(
+    text=TextConfig(num_hidden_layers=2, intermediate_size=1024),
+    add_cross_attention=False,
+)
+config_mm  = ModelConfig(
+    text=TextConfig(num_hidden_layers=2, intermediate_size=1024),
+    add_cross_attention=True,
+)
 
 
 def test_self_attention():

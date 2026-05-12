@@ -1,19 +1,19 @@
 import torch
 import torch.nn as nn
 
-from config import MedConfig
-from bert_layer import BertLayer
+from config import ModelConfig
+from .bert_layer import BertLayer
 
 
 class BertEmbeddings(nn.Module):
     """Token ID → 벡터 변환 (word embedding + position embedding)"""
-    def __init__(self, config: MedConfig):
+    def __init__(self, config: ModelConfig):
         super().__init__()
-        self.word_embeddings     = nn.Embedding(config.vocab_size, config.hidden_size,
-                                                padding_idx=config.pad_token_id)
-        self.position_embeddings = nn.Embedding(512, config.hidden_size)
-        self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
-        self.dropout   = nn.Dropout(config.hidden_dropout_prob)
+        self.word_embeddings     = nn.Embedding(config.text.vocab_size, config.text.hidden_size,
+                                                padding_idx=config.text.pad_token_id)
+        self.position_embeddings = nn.Embedding(512, config.text.hidden_size)
+        self.LayerNorm = nn.LayerNorm(config.text.hidden_size, eps=config.text.layer_norm_eps)
+        self.dropout   = nn.Dropout(config.text.hidden_dropout_prob)
 
     def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
         B, S = input_ids.shape
@@ -24,10 +24,10 @@ class BertEmbeddings(nn.Module):
 
 class BertEncoder(nn.Module):
     """BertLayer를 num_hidden_layers개 쌓은 것"""
-    def __init__(self, config: MedConfig):
+    def __init__(self, config: ModelConfig):
         super().__init__()
         self.layers = nn.ModuleList(
-            [BertLayer(config) for _ in range(config.num_hidden_layers)]
+            [BertLayer(config) for _ in range(config.text.num_hidden_layers)]
         )
 
     def forward(
@@ -59,13 +59,13 @@ class BertModel(nn.Module):
       - causal attention mask (하삼각 행렬)
       - last_hidden_state: 각 토큰 → lm_head로 next token 예측
     """
-    def __init__(self, config: MedConfig, is_decoder: bool = False):
+    def __init__(self, config: ModelConfig, is_decoder: bool = False):
         super().__init__()
         self.config     = config
         self.is_decoder = is_decoder
         self.embeddings = BertEmbeddings(config)
         self.encoder    = BertEncoder(config)
-        self.pooler     = nn.Linear(config.hidden_size, config.hidden_size)
+        self.pooler     = nn.Linear(config.text.hidden_size, config.text.hidden_size)
 
     def get_extended_attention_mask(self, attention_mask: torch.Tensor) -> torch.Tensor:
         """
@@ -95,7 +95,7 @@ class BertModel(nn.Module):
         self,
         input_ids: torch.Tensor,                        # [B, seq]
         attention_mask: torch.Tensor = None,            # [B, seq]
-        encoder_hidden_states: torch.Tensor = None,     # [B, I, encoder_width]
+        encoder_hidden_states: torch.Tensor = None,     # [B, I, hidden]
         encoder_attention_mask: torch.Tensor = None,    # [B, I]
     ) -> dict:
 

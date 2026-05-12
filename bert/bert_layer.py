@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
 
-from config import MedConfig
-from attention import BertAttention
-from ffn import BertIntermediate, BertOutput
+from config import ModelConfig
+from .attention import BertAttention
+from .ffn import BertIntermediate, BertOutput
 
 
 class BertLayer(nn.Module):
@@ -22,7 +22,7 @@ class BertLayer(nn.Module):
     Causal vs Bi는 BertModel에서 mask를 만들어서 넘겨줌.
     Cross-Attention 유무는 config.add_cross_attention으로 결정.
     """
-    def __init__(self, config: MedConfig):
+    def __init__(self, config: ModelConfig):
         super().__init__()
         self.attention = BertAttention(config)   # Self-Attention
 
@@ -38,7 +38,7 @@ class BertLayer(nn.Module):
         self,
         hidden_states: torch.Tensor,                    # [B, T, hidden]
         attention_mask: torch.Tensor = None,            # [B, 1, T, T] or [B, 1, 1, T]
-        encoder_hidden_states: torch.Tensor = None,     # [B, I, encoder_width]
+        encoder_hidden_states: torch.Tensor = None,     # [B, I, hidden]
         encoder_attention_mask: torch.Tensor = None,    # [B, 1, 1, I]
     ) -> torch.Tensor:
 
